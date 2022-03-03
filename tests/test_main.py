@@ -1,52 +1,15 @@
-# import sys
-# sys.path.append('./src/haas_websocket')
+from tkinter.simpledialog import SimpleDialog
 import pytest
 import os
 import json
 import websocket
 from haas_websocket import main
 from haas_websocket.haas_rest_handler import TokenAuth
-# import haas_websocket.haas_password_generator
-# import unittest
 from unittest.mock import MagicMock, patch, call, Mock
 from google.cloud import secretmanager
-# from google.api_core.exceptions import FailedPrecondition
-
-
-#--------------------------------------------------------------------------------System test for websocket connection--------------------------------------------------------------------------------
-
-# def test_main_integration():
-#     obj = Haas_Websocket()
-
-#     # when
-#     response = obj.startWebsocket(False)
-
-#     # then assert that state is maintained
-#     assert response == True
-
-# @patch("main.TokenAuth.checkPassword",side_effect=Exception)
-# def test_main_exceptions(mock):
-#     obj = Haas_Websocket()
-
-#     # when
-#     response = obj.startWebsocket(False)
-
-    # then assert that state is maintained
-    # assert
-
-
-
-# def test_api_refresh_token():
-#     obj = TokenAuth()
-    
-#     # when
-#     response = obj.refreshToken()
-
-#     # then assert that state is maintained
-#     assert response
 
 #--------------------------------------------------------------------------------unit test for pub/sub publisher--------------------------------------------------------------------------------
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC'
@@ -58,7 +21,7 @@ def test_main_filter_point(pubsub):
     pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'POINT_TOPIC'),encoded)
 
 #--------------------------------------------------------------------------------unit tests for filter module--------------------------------------------------------------------------------
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'HEARTBEAT_TOPIC': 'HEARTBEAT_TOPIC'
@@ -69,7 +32,7 @@ def test_main_filter_heartbeat(pubsub):
     encoded = message.encode("utf-8")
     pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'HEARTBEAT_TOPIC'),encoded)
 
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'THING_TOPIC': 'THING_TOPIC'
@@ -80,7 +43,7 @@ def test_main_filter_thing(pubsub):
     encoded = message.encode("utf-8")
     pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'THING_TOPIC'),encoded)
 
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'LOCATION_TOPIC': 'LOCATION_TOPIC'
@@ -91,14 +54,14 @@ def test_main_filter_location(pubsub):
     encoded = message.encode("utf-8")
     pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'LOCATION_TOPIC'),encoded)
     
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {})
 def test_main_filter_none(pubsub):
     message = '{"type":"none"}'
     response = main.filterMessage(message,pubsub)
     assert response == False
 
-@patch('google.cloud.pubsub_v1')
+@patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID'
 })
@@ -108,28 +71,87 @@ def test_main_filter_keep_alive(pubsub):
     assert response == 'keepAlive'
 
 
-@patch('google.cloud.pubsub_v1')
-# @patch.object(main, 'filterMessage')
-# @patch.object(main, 'restSignIn')
-# @patch.object(TokenAuth, 'mock_ta')
-# @patch('websocket')
+#--------------------------------------------------------------------------------unit tests for websocket module--------------------------------------------------------------------------------
+
+@patch('google.cloud.pubsub_v1.PublisherClient')
+@patch('haas_websocket.haas_rest_handler.TokenAuth')
+@patch.object(main, 'running', side_effect = [True,False])
+@patch.object(main, 'filterMessage', return_value = ("value", True))
+@patch.object(websocket,'create_connection')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
-def test_main_ws(pubsub):
-    main.filterMessage = MagicMock(return_value = ("value", True))
-        
-    TokenAuth.getToken = MagicMock(return_value = "btoken")
-    TokenAuth.checkPassword = MagicMock(return_value = True)
-    TokenAuth.checkToken = MagicMock(return_value = True)
-    
-    websocket.recv = MagicMock(return_value = "message")
-    
+def test_main_ws_publish(pubsub, mTockenAuth, running, filterMessage, create_connection):
+    mTockenAuth.signIn = MagicMock(return_value = 'token')
+    mTockenAuth.checkPassword = MagicMock(return_value = True)
+    mTockenAuth.checkToken = MagicMock(return_value = True)
+    main.restSignIn = MagicMock(return_value = mTockenAuth)
+    websocket.create_connection().recv = MagicMock(return_value = 'value')
     main.startWebsocket(pubsub)
-    assert True == False
-    
+    main.filterMessage.assert_called_with('value',pubsub)
+
+@patch('google.cloud.pubsub_v1.PublisherClient')
+@patch('haas_websocket.haas_rest_handler.TokenAuth')
+@patch.object(main, 'running', side_effect = [True,False])
+@patch.object(main, 'filterMessage', return_value = ("", False))
+@patch.object(websocket,'create_connection')
+@patch.dict(os.environ, {
+    'PROJECT_ID': 'PROJECT_ID',
+    'POINT_TOPIC': 'POINT_TOPIC',
+    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
+})
+def test_main_ws_failed_publish(pubsub, mTockenAuth, running, filterMessage, create_connection):
+    mTockenAuth.signIn = MagicMock(return_value = 'token')
+    mTockenAuth.checkPassword = MagicMock(return_value = True)
+    mTockenAuth.checkToken = MagicMock(return_value = True)
+    main.restSignIn = MagicMock(return_value = mTockenAuth)
+    websocket.create_connection().recv = MagicMock(return_value = 'value')
+    main.startWebsocket(pubsub)
+    main.filterMessage.assert_called_with('value',pubsub)
+
+@patch('google.cloud.pubsub_v1.PublisherClient')
+@patch('haas_websocket.haas_rest_handler.TokenAuth')
+@patch.object(main, 'running', side_effect = [True,False])
+@patch.object(main, 'filterMessage')
+@patch.object(websocket,'create_connection')
+@patch.dict(os.environ, {
+    'PROJECT_ID': 'PROJECT_ID',
+    'POINT_TOPIC': 'POINT_TOPIC',
+    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
+})
+def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_connection):
+    mTockenAuth.signIn = MagicMock(return_value = 'token')
+    mTockenAuth.checkPassword = MagicMock(return_value = True)
+    mTockenAuth.checkToken = MagicMock(return_value = False)
+    main.restSignIn = MagicMock(return_value = mTockenAuth)
+    main.startWebsocket(pubsub)
+    mTockenAuth.tokenUpdate.assert_called_with()
+
+@patch('google.cloud.pubsub_v1.PublisherClient')
+@patch('haas_websocket.haas_rest_handler.TokenAuth')
+@patch.object(main, 'running', side_effect = [True,False])
+@patch.object(main, 'filterMessage')
+@patch.object(websocket,'create_connection')
+@patch.dict(os.environ, {
+    'PROJECT_ID': 'PROJECT_ID',
+    'POINT_TOPIC': 'POINT_TOPIC',
+    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
+})
+def test_main_failed_password(pubsub, mTockenAuth, running, filterMessage, create_connection):
+    mTockenAuth.signIn = MagicMock(return_value = 'token')
+    mTockenAuth.checkPassword = MagicMock(return_value = False)
+    main.restSignIn = MagicMock(return_value = mTockenAuth)
+    main.startWebsocket(pubsub)
+    mTockenAuth.passwordUpdate.assert_called_with()
+
+def test_main_running():
+    response = main.running()
+    assert response == True
+
+
+
 
 #     mock_smc.return_value.add_secret_version.return_value = 'success'
 

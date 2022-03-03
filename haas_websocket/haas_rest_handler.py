@@ -6,6 +6,7 @@ import logging
 import haas_websocket.haas_password_generator
 from dotenv import load_dotenv
 from google.cloud import secretmanager
+from google.cloud.secretmanager_v1 import types
 from google.api_core.exceptions import FailedPrecondition
 
 class TokenAuth():
@@ -19,19 +20,19 @@ class TokenAuth():
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
         self.id = os.getenv('PROJECT_ID')
-        self.client = secretmanager.SecretManagerServiceClient()
         self.r_token = "initialized"
 
     def secretManagerGet(self,secret_id):
         if not self.id or not secret_id:
             return None
         try:
-            parent = self.client.secret_path(self.id, secret_id)
-            sv_list = self.client.list_secret_versions
-            for version in sv_list(request={"parent": parent}):
+            client = secretmanager.SecretManagerServiceClient()
+            parent = client.secret_path(self.id, secret_id)
+            sv_list = client.list_secret_versions
+            parent_list = sv_list(request={"parent": parent})
+            for version in parent_list:
                 if (version.state == 1):
-                    version_number = version.name.split("/")[-1]
-                    response = self.client.access_secret_version(request={"name": version.name})
+                    response = client.access_secret_version(request={"name": version.name})
                     decoded = response.payload.data.decode("UTF-8")
                     return decoded
         except Exception:
@@ -41,9 +42,10 @@ class TokenAuth():
         if not self.id or not secret_id or not payload:
             return None
         try:
+            client = secretmanager.SecretManagerServiceClient()
             encoded_payload = payload.encode("UTF-8")
             parent = f"projects/{self.id}/secrets/{secret_id}"
-            response = self.client.add_secret_version(
+            response = client.add_secret_version(
                 request={"parent": parent, "payload": {"data": encoded_payload}}
             )
             return response
@@ -78,7 +80,7 @@ class TokenAuth():
         if r.status_code == 200:
             return True
         else:
-            print(f"(ERROR) FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT")
+            print("(ERROR) FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT")
             return False
 
     def refreshToken(self):
