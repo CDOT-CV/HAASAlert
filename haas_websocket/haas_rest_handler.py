@@ -1,13 +1,9 @@
 import os
 import json
 import requests
-import random
-import logging
 import haas_websocket.haas_password_generator
 from dotenv import load_dotenv
 from google.cloud import secretmanager
-from google.cloud.secretmanager_v1 import types
-from google.api_core.exceptions import FailedPrecondition
 
 class TokenAuth():
 
