@@ -30,7 +30,7 @@ Linux: export GOOGLE_APPLICATION_CREDENTIALS=""###PATH_TO_PROJECT###/HAASAlert/h
 To start the HAAS Websocket, open a terminal window and run the following command in the root of the repository:
 
 ```
-python3 haas_websocket/main.py
+python -m haas_websocket.main
 ```
 
 To run tests as well as to get code coverage from unit tests run the following set of commands in the root of the project:

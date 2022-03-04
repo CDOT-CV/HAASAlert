@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-import haas_websocket.haas_password_generator
+import logging
 from dotenv import load_dotenv
 from google.cloud import secretmanager
 
@@ -30,7 +30,8 @@ class TokenAuth():
                     response = client.access_secret_version(request={"name": version.name})
                     decoded = response.payload.data.decode("UTF-8")
                     return decoded
-        except Exception:
+        except Exception as e:
+            logging.error(f"HAAS_REST_HANDLER.secretManagerGet Could not get a secret version for the secret ID: {secret_id} /n{str(e)}")
             return None
 
     def secretManagerSet(self,secret_id,payload):
@@ -45,7 +46,7 @@ class TokenAuth():
             )
             return response
         except Exception:
-            print(f"(ERROR) Could not add a new secret version for the secret ID: {secret_id}")
+            logging.error(f"HAAS_REST_HANDLER.secretManagerSet Could not add a new secret version for the secret ID: {secret_id}")
             return None
 
 
@@ -57,16 +58,24 @@ class TokenAuth():
                     json={"grant_type": "password",
                     "username":self.api_username,
                     "password":self.api_password})
-        json_response = json.loads(r.content)
+        if (r.status_code == 200):
+            json_response = json.loads(r.content)
 
-        self.b_token = json_response["access_token"]
-        self.r_token = json_response["refresh_token"]
-        
-        self.secretManagerSet(self.bearer_key, self.b_token)
-        self.secretManagerSet(self.refresh_key, self.r_token)
+            self.b_token = json_response.get("access_token")
+            self.r_token = json_response.get("refresh_token")
+            
+            if not self.b_token or not self.r_token:
+                logging.error("HAAS_REST_HANDLER.signIn failed to get a token from the Haas alert response message")
+                return None
+            
+            self.secretManagerSet(self.bearer_key, self.b_token)
+            self.secretManagerSet(self.refresh_key, self.r_token)
 
-        print("Successfully signed into the Haas Alert Rest Endpoint")
-        return self.b_token
+            logging.info("Successfully signed into the Haas Alert Rest Endpoint")
+            return self.b_token
+        else:
+            logging.error(f"HAAS_REST_HANDLER.signIn FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")
+            return None
 
 
     def signOut(self):
@@ -75,7 +84,7 @@ class TokenAuth():
         if r.status_code == 200:
             return True
         else:
-            print("(ERROR) FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT")
+            logging.error(f"HAAS_REST_HANDLER.signOut FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")
             return False
 
     def refreshToken(self):
@@ -89,15 +98,24 @@ class TokenAuth():
                             json = refresh_json)
         json_response = json.loads(r.content)
 
-        self.b_token = json_response["access_token"]
-        self.r_token = json_response["refresh_token"]
+        if (r.status_code == 200):
 
-        self.secretManagerSet(self.bearer_key, self.b_token)
-        self.secretManagerSet(self.refresh_key, self.r_token)
+            self.b_token = json_response.get("access_token")
+            self.r_token = json_response.get("refresh_token")
+            
+            if not self.b_token or not self.r_token:
+                logging.error("HAAS_REST_HANDLER.refreshToken failed to get a token from the Haas alert response message")
+                return None
 
-        print("Token successfully refreshed.")
+            self.secretManagerSet(self.bearer_key, self.b_token)
+            self.secretManagerSet(self.refresh_key, self.r_token)
 
-        return self.b_token
+            logging.info("Token successfully refreshed.")
+
+            return self.b_token
+        else:
+            logging.error(f"HAAS_REST_HANDLER.refreshToken Bad response code from Haas alert API \nResponse message: {r.status_code}")
+            return None
 
 
     def setPassword(self, new_password):
@@ -117,8 +135,9 @@ class TokenAuth():
     #         x = self.setPassword(new_password)
     #         return True
     #     else:
-    #         print(f"(ERROR) FAILED TO CONNECT TO GCP AND UPDATE SECRET REFRESHING PASSWORD")
+    #         print(f"FAILED TO CONNECT TO GCP AND UPDATE SECRET REFRESHING PASSWORD")
     #         return False
+    # jacobs idea: ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
     def checkToken(self):
         gcp_btoken = self.secretManagerGet(self.bearer_key)
@@ -134,13 +153,13 @@ class TokenAuth():
         if (self.api_password == api_password):
             return True
         else:
-            print (api_password)
+            logging.info("Updating password from GCP")
             return False
 
     def tokenUpdate(self):
         self.b_token = self.secretManagerGet(self.bearer_key)
 
-        print(f"(INFO) Updated b_token from GCP")
+        logging.info(f"Updated b_token from GCP")
         return self.b_token
     
     # TODO: same as above, fix password updating module
