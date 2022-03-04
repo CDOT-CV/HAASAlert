@@ -13,7 +13,6 @@ def restSignIn():
     return rest_agent
 
 def publishMessage(publisher, path, message):
-    print (f"publishMessage module, publishing message. \npath: {path} \nmessage: {message}")
     future = publisher.publish(path, message)
 
 def filterMessage(jsonData,publisher):
@@ -67,9 +66,9 @@ def startWebsocket(publisher):
                     print(result)
                     msg_type, published = filterMessage(result,publisher)
                     if published == True:
-                        print(f"(INFO) Successfully pushed {msg_type} message pub/sub. \n Full Message: {result}")
+                        print(f"(INFO) Successfully pushed {msg_type} message pub/sub. \nFull Message: {result}")
                     else:
-                        print(f"(INFO) Successfully recieved {msg_type} message, did not publish to pub/sub \n Full Message: {result}")
+                        print(f"(INFO) Successfully recieved {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
                 except KeyboardInterrupt:
                     break
             else:

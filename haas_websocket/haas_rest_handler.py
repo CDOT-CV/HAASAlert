@@ -8,7 +8,6 @@ from google.cloud import secretmanager
 class TokenAuth():
 
     def __init__(self):
-        # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp_credentials.json"
         load_dotenv()
         self.username_key = os.getenv('HAAS_AUTH_USERNAME_KEY')
         self.password_key = os.getenv('HAAS_AUTH_PASSWORD_KEY')
