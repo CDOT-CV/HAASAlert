@@ -22,7 +22,7 @@ Following this look at the sample.env file and create a copy called .env with ea
 
 ```
 Windows: $env:GOOGLE_APPLICATION_CREDENTIALS="###PATH_TO_PROJECT###\haas_websocket\gcp_credentials.json"
-Linux: export GOOGLE_APPLICATION_CREDENTIALS=""###PATH_TO_PROJECT###/HAASAlert/haas_websocket/gcp_credentials.json"
+Linux: export GOOGLE_APPLICATION_CREDENTIALS="###PATH_TO_PROJECT###/HAASAlert/haas_websocket/gcp_credentials.json"
 ```
 
 ## Running Haas Websocket
