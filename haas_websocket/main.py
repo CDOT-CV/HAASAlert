@@ -39,15 +39,12 @@ def filterMessage(message,publisher):
         path = publisher.topic_path(project_id, os.getenv('LOCATION_TOPIC'))
         returnMessage = 'location'
     elif data_type is None and data.get('keepAlive'):
-        print('hello')
         returnMessage = 'keepAlive'
     else:
-        print('goodbye')
         returnMessage = 'Unknown'
     if path and returnMessage:
         publishMessage(publisher,path,encoded)
         published = True
-
     
     return returnMessage, published
 
