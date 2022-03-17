@@ -2,12 +2,11 @@ import os
 import requests
 import websocket
 from haas_websocket import main
-from haas_websocket.haas_rest_handler import TokenAuth
-from unittest.mock import MagicMock, patch, call, Mock
-from google.cloud import secretmanager
+from haas_websocket.rest.haas_rest_handler import TokenAuth
+from unittest.mock import MagicMock, patch
 
 @patch('google.cloud.pubsub_v1.PublisherClient')
-@patch('haas_websocket.haas_rest_handler.TokenAuth')
+@patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 @patch.object(main, 'running', side_effect = [True,False])
 @patch.object(main, 'filterMessage')
 @patch.object(websocket,'create_connection')
@@ -112,10 +111,12 @@ def test_rest_handler_sign_in_failure(mock_rest_smg, mock_rest_sms):
     assert response is None
 
 @patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint",
+"HAAS_AUTH_KEY":"something/some.auth.com","HAAS_API_VERSION":"100"},clear=True)
 def test_rest_handler_sign_out_success():
     
     obj = TokenAuth()
+    obj.b_token = "b_token"
     haas_response = requests.Response
     haas_response.status_code = 200
     requests.post = MagicMock(return_value = haas_response)
@@ -125,10 +126,12 @@ def test_rest_handler_sign_out_success():
     assert response == True
 
 @patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint",
+"HAAS_AUTH_KEY":"something/some.auth.com","HAAS_API_VERSION":"100"},clear=True)
 def test_rest_handler_sign_out_failure():
     
     obj = TokenAuth()
+    obj.b_token = "b_token"
     haas_response = requests.Response
     haas_response.status_code = 400
     requests.post = MagicMock(return_value = haas_response)

@@ -14,9 +14,14 @@ class TokenAuth():
         self.bearer_key = os.getenv('HAAS_BEARER_TOKEN_KEY')
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
+        self.api_auth = os.getenv('HAAS_AUTH_KEY')
+        self.api_version = os.getenv('HAAS_API_VERSION')
         self.id = os.getenv('PROJECT_ID')
         self.r_token = "initialized"
-
+        
+        if (not self.username_key or not self.password_key or not self.bearer_key or not self.refresh_key or not self.api_endpoint or not self.id or not self.api_auth or not self.api_version):
+            logging.error("HAAS_REST_HANDLER.INIT Could not retrieve a required environmental variable. Please check the sample.env file and verify that all variables are assigned.")
+            
     def secretManagerGet(self,secret_id):
         if not self.id or not secret_id:
             return None
@@ -74,14 +79,19 @@ class TokenAuth():
             logging.info("Successfully signed into the Haas Alert Rest Endpoint")
             return self.b_token
         else:
-            logging.error(f"HAAS_REST_HANDLER.signIn FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")
+            logging.error(f"HAAS_REST_HANDLER.signIn FAILED TO CONNECT TO HAAS ALERT AND SIGN IN \nResponse message: {r.status_code}")
             return None
 
 
     def signOut(self):
-        r = requests.post(self.api_endpoint+'oauth/revoke')
+        bearer = 'Bearer' + self.b_token
+        r = requests.post(self.api_endpoint+'oauth/revoke', headers=
+                          {'content-type': 'application/json', 
+                           'ACCEPT':'application/vnd.haasalert.com; version=2',
+                           'Authorization':bearer})
 
         if r.status_code == 200:
+            logging.info("HAAS_REST_HANDLER.signOut Successfully signed out of the HAAS API")
             return True
         else:
             logging.error(f"HAAS_REST_HANDLER.signOut FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")

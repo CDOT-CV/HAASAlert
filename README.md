@@ -22,7 +22,9 @@ This code requires Python 3.6 or a higher version. If you haven’t already, dow
 pip install -r requirements.txt
 ```
 
-Following this look at the sample.env file and create a copy called .env with each of the parameters assigned to a value. Also, in the haas_websocket directory look at the gcp_credentials_template.json file and supply a service account json file and rename it to gcp_credentials.json. Then set your environmental variables to access this file for the GCP pub/sub and secretmanager connectors as follows:
+Following this look at the sample.env file and create a copy called .env with each of the parameters assigned to a value. Also, in the haas_websocket directory look at the gcp_credentials_template.json file and supply a service account json file and rename it to gcp_credentials.json. In the .env file, all endpoints must end with a backslash (ex: www.google.com/) following the url otherwise the program will not parse the api endpoint or websocket variables properly.
+
+Then set your environmental variables to access this file for the GCP pub/sub and secretmanager connectors as follows:
 
 ```
 Windows: $env:GOOGLE_APPLICATION_CREDENTIALS="###PATH_TO_PROJECT###\haas_websocket\gcp_credentials.json"

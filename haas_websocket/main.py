@@ -2,8 +2,7 @@ import os
 import json
 import websocket
 import logging
-from haas_websocket.haas_rest_handler import TokenAuth
-from dotenv import load_dotenv
+from haas_websocket.rest.haas_rest_handler import TokenAuth
 from google.cloud import pubsub_v1
 
 def restSignIn():
@@ -14,13 +13,13 @@ def restSignIn():
 def publishMessage(publisher, path, message):
     future = publisher.publish(path, message)
 
-def filterMessage(jsonData,publisher):
+def filterMessage(message,publisher):
     project_id = os.getenv('PROJECT_ID')
     if not project_id:
         return False
     
-    encoded = jsonData.encode("utf-8")
-    data = json.loads(jsonData)
+    encoded = message.encode("utf-8")
+    data = json.loads(message)
     returnMessage = None
     path = None
     published = False
@@ -28,19 +27,23 @@ def filterMessage(jsonData,publisher):
     data_type = data.get('type')
     # Filters the messages and publishes messages to specified topic
     if data_type == 'point':
-        path = publisher.topic_path(os.getenv('PROJECT_ID'), os.getenv('POINT_TOPIC'))
+        path = publisher.topic_path(project_id, os.getenv('POINT_TOPIC'))
         returnMessage = 'point'
     elif data_type == 'heartbeat':
-        path = publisher.topic_path(os.getenv('PROJECT_ID'), os.getenv('HEARTBEAT_TOPIC'))
+        path = publisher.topic_path(project_id, os.getenv('HEARTBEAT_TOPIC'))
         returnMessage = 'heartbeat'
     elif data_type == 'thing':
-        path = publisher.topic_path(os.getenv('PROJECT_ID'), os.getenv('THING_TOPIC'))
+        path = publisher.topic_path(project_id, os.getenv('THING_TOPIC'))
         returnMessage = 'thing'
     elif data_type == 'location':
-        path = publisher.topic_path(os.getenv('PROJECT_ID'), os.getenv('LOCATION_TOPIC'))
+        path = publisher.topic_path(project_id, os.getenv('LOCATION_TOPIC'))
         returnMessage = 'location'
-    elif data_type is None:
+    elif data_type is None and data.get('keepAlive'):
+        print('hello')
         returnMessage = 'keepAlive'
+    else:
+        print('goodbye')
+        returnMessage = 'Unknown'
     if path and returnMessage:
         publishMessage(publisher,path,encoded)
         published = True
