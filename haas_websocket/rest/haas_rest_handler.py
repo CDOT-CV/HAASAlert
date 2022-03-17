@@ -14,12 +14,10 @@ class TokenAuth():
         self.bearer_key = os.getenv('HAAS_BEARER_TOKEN_KEY')
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
-        self.api_auth = os.getenv('HAAS_AUTH_KEY')
-        self.api_version = os.getenv('HAAS_API_VERSION')
         self.id = os.getenv('PROJECT_ID')
         self.r_token = "initialized"
         
-        if (not self.username_key or not self.password_key or not self.bearer_key or not self.refresh_key or not self.api_endpoint or not self.id or not self.api_auth or not self.api_version):
+        if (not self.username_key or not self.password_key or not self.bearer_key or not self.refresh_key or not self.api_endpoint or not self.id):
             logging.error("HAAS_REST_HANDLER.INIT Could not retrieve a required environmental variable. Please check the sample.env file and verify that all variables are assigned.")
             
     def secretManagerGet(self,secret_id):
