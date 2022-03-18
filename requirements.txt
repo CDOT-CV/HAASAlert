@@ -1,0 +1,9 @@
+protobuf
+pytest
+python-dotenv
+requests
+websocket_client
+gcloud
+google-cloud-pubsub
+google-cloud-secret-manager
+coverage
