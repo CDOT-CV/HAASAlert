@@ -78,6 +78,9 @@ def startWebsocket(publisher):
                     logging.info(f"Successfully recieved {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
             except KeyboardInterrupt:
                 break
+            except websocket._exceptions.WebSocketConnectionClosedException:
+                logging.warn("WebSocketConnectionClosedException, restarting websocket connection")
+                ws = websocket.create_connection(ws_endpoint+b_token)
             
     rest.signOut()
     ws.close()

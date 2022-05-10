@@ -7,3 +7,4 @@ gcloud
 google-cloud-pubsub
 google-cloud-secret-manager
 coverage
+confluent-kafka
