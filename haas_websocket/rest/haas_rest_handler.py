@@ -13,12 +13,13 @@ class TokenAuth():
         self.password_key = os.getenv('HAAS_AUTH_PASSWORD_KEY')
         self.bearer_key = os.getenv('HAAS_BEARER_TOKEN_KEY')
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
+        self.auth_endpoint = os.getenv('HAAS_AUTH_ENDPOINT')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
         self.api_id = os.getenv('HAAS_API_ID')
         self.id = os.getenv('PROJECT_ID')
         self.r_token = "initialized"
         
-        if (not self.username_key or not self.password_key or not self.bearer_key or not self.refresh_key or not self.api_endpoint or not self.id):
+        if (not self.username_key or not self.password_key or not self.bearer_key or not self.refresh_key or not self.auth_endpoint or not self.id):
             logging.error("HAAS_REST_HANDLER.INIT Could not retrieve a required environmental variable. Please check the sample.env file and verify that all variables are assigned.")
             
     def secretManagerGet(self,secret_id):
@@ -29,7 +30,6 @@ class TokenAuth():
             parent = client.secret_path(self.id, secret_id)
             sv_list = client.list_secret_versions
             parent_list = sv_list(request={"parent": parent})
-            logging.info(parent_list)
             for version in parent_list:
                 if (version.state == 1):
                     response = client.access_secret_version(request={"name": version.name})
@@ -56,11 +56,9 @@ class TokenAuth():
 
 
     def signIn(self):
-        logging.info('user: ' + self.username_key + '  pass: ' +self.password_key)
-
         self.api_username = self.secretManagerGet(self.username_key)
         self.api_password = self.secretManagerGet(self.password_key)
-        r = requests.post(self.api_endpoint + "oauth/token",
+        r = requests.post(self.auth_endpoint + "oauth/token",
                     json={"grant_type": "password",
                     "username":self.api_username,
                     "password":self.api_password})
@@ -85,8 +83,8 @@ class TokenAuth():
 
 
     def signOut(self):
-        bearer = 'Bearer' + self.b_token
-        r = requests.post(self.api_endpoint+'oauth/revoke', headers=
+        bearer = "Bearer " + self.b_token
+        r = requests.post(self.auth_endpoint+'oauth/revoke', headers=
                           {'content-type': 'application/json', 
                            'ACCEPT':'application/vnd.haasalert.com; version=2',
                            'Authorization':bearer})
@@ -105,11 +103,11 @@ class TokenAuth():
         refresh_json = {"grant_type": "refresh_token",
                     "refresh_token":self.r_token}
 
-        r = requests.post(self.api_endpoint + "oauth/token",
+        r = requests.post(self.auth_endpoint + "oauth/token",
                             json = refresh_json)
-        json_response = json.loads(r.content)
 
         if (r.status_code == 200):
+            json_response = json.loads(r.content)
 
             self.b_token = json_response.get("access_token")
             self.r_token = json_response.get("refresh_token")
@@ -180,19 +178,34 @@ class TokenAuth():
     #     print(f"(INFO) Updated api password from GCP")
     #     return self.api_password
 
-    def getThings(self):
-        bearer = 'Bearer' + self.b_token
-        r = requests.get(self.api_endpoint+'organizations/{self.api_id}/things', headers=
+    def getOrganizations(self):
+        bearer = "Bearer " + self.b_token
+        header = {"Content-Type": "application/json", 
+                    "ACCEPT":"application/vnd.haasalert.com; version=2",
+                    "Authorization":bearer}
+        r = requests.get(f'{self.api_endpoint}organizations', headers=header)
+
+        if r.status_code == 200:
+            json_response = json.loads(r.content)
+            logging.info("HAAS_REST_HANDLER.getOrganizations Successfully got organizations")
+            return json_response
+        else:
+            logging.error(f"HAAS_REST_HANDLER.getOrganizations FAILED TO CONNECT TO HAAS ALERT AND getOrganizations \nResponse message: {r.status_code}")
+            return False
+
+    def getThings(self, id):
+        bearer = "Bearer " + self.b_token
+        r = requests.get(f'{self.api_endpoint}organizations/{id}/things', headers=
                           {'content-type': 'application/json', 
                            'ACCEPT':'application/vnd.haasalert.com; version=2',
                            'Authorization':bearer})
-        json_response = json.loads(r.content)
-        logging.info(json_response)
+
         if r.status_code == 200:
-            logging.info("HAAS_REST_HANDLER.signOut Successfully signed out of the HAAS API")
-            return True
+            json_response = json.loads(r.content)
+            logging.info("HAAS_REST_HANDLER.getThings Successfully got things")
+            return json_response
         else:
-            logging.error(f"HAAS_REST_HANDLER.signOut FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")
+            logging.error(f"HAAS_REST_HANDLER.getThings FAILED TO CONNECT TO HAAS ALERT AND getThings \nResponse message: {r.status_code}")
             return False
 
     def getToken(self):
