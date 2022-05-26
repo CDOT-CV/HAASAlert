@@ -14,6 +14,7 @@ class TokenAuth():
         self.bearer_key = os.getenv('HAAS_BEARER_TOKEN_KEY')
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
+        self.api_id = os.getenv('HAAS_API_ID')
         self.id = os.getenv('PROJECT_ID')
         self.r_token = "initialized"
         
@@ -28,6 +29,7 @@ class TokenAuth():
             parent = client.secret_path(self.id, secret_id)
             sv_list = client.list_secret_versions
             parent_list = sv_list(request={"parent": parent})
+            logging.info(parent_list)
             for version in parent_list:
                 if (version.state == 1):
                     response = client.access_secret_version(request={"name": version.name})
@@ -54,9 +56,10 @@ class TokenAuth():
 
 
     def signIn(self):
+        logging.info('user: ' + self.username_key + '  pass: ' +self.password_key)
+
         self.api_username = self.secretManagerGet(self.username_key)
         self.api_password = self.secretManagerGet(self.password_key)
-
         r = requests.post(self.api_endpoint + "oauth/token",
                     json={"grant_type": "password",
                     "username":self.api_username,
@@ -176,6 +179,21 @@ class TokenAuth():
 
     #     print(f"(INFO) Updated api password from GCP")
     #     return self.api_password
+
+    def getThings(self):
+        bearer = 'Bearer' + self.b_token
+        r = requests.get(self.api_endpoint+'organizations/{self.api_id}/things', headers=
+                          {'content-type': 'application/json', 
+                           'ACCEPT':'application/vnd.haasalert.com; version=2',
+                           'Authorization':bearer})
+        json_response = json.loads(r.content)
+        logging.info(json_response)
+        if r.status_code == 200:
+            logging.info("HAAS_REST_HANDLER.signOut Successfully signed out of the HAAS API")
+            return True
+        else:
+            logging.error(f"HAAS_REST_HANDLER.signOut FAILED TO CONNECT TO HAAS ALERT AND SIGN OUT \nResponse message: {r.status_code}")
+            return False
 
     def getToken(self):
         return self.b_token
