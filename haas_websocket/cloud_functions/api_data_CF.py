@@ -1,8 +1,10 @@
 from haas_websocket.rest.haas_rest_handler import TokenAuth
+from google.cloud import datastore
 import logging
 
 # Will run on an interval in GCP as a cloud function to regenerate the bearer token each day
-
+client = datastore.Client()
+index = 1
 def parseIds (organizations):
     if organizations:
         ids = []
@@ -24,6 +26,29 @@ def getAllThings(list):
     else:
         return None
 
+def getAllLocations(list):
+    if list:
+        locations = []
+        for id in list:
+            newLocations = rest_agent.getLocations(id)
+            if newLocations:
+                for thing in newLocations['data']:
+                    locations.append(thing)
+        return locations
+    else:
+        return None
+
+def createDatastoreTasks(list, kind):
+    if list: 
+        tasks = []
+        for entry in list:
+            newTask = datastore.Entity(client.key(kind, entry["id"]))
+            newTask.update(entry)
+            tasks.append(newTask)
+        return tasks
+    else:
+        return None
+
 # def refresh_token(request):
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 rest_agent = TokenAuth()
@@ -31,5 +56,10 @@ rest_agent.signIn()
 organizations = rest_agent.getOrganizations()
 listIds = parseIds(organizations)
 allThings = getAllThings(listIds)
-logging.info(allThings)
+allLocations = getAllLocations(listIds)
+
+thingTasks = createDatastoreTasks(allThings, "HaasAlertThings")
+locationTasks = createDatastoreTasks(allLocations, "HaasAlertLocations")
+client.put_multi(locationTasks)
+
 rest_agent.signOut()

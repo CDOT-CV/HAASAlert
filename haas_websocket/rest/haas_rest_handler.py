@@ -208,5 +208,20 @@ class TokenAuth():
             logging.error(f"HAAS_REST_HANDLER.getThings FAILED TO CONNECT TO HAAS ALERT AND getThings \nResponse message: {r.status_code}")
             return False
 
+    def getLocations(self, id):
+        bearer = "Bearer " + self.b_token
+        r = requests.get(f'{self.api_endpoint}organizations/{id}/locations', headers=
+                          {'content-type': 'application/json', 
+                           'ACCEPT':'application/vnd.haasalert.com; version=2',
+                           'Authorization':bearer})
+
+        if r.status_code == 200:
+            json_response = json.loads(r.content)
+            logging.info("HAAS_REST_HANDLER.getLocations Successfully got locations")
+            return json_response
+        else:
+            logging.error(f"HAAS_REST_HANDLER.getLocations FAILED TO CONNECT TO HAAS ALERT AND getLocations \nResponse message: {r.status_code}")
+            return False
+
     def getToken(self):
         return self.b_token
