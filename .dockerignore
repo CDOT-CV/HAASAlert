@@ -1,0 +1,12 @@
+Dockerfile
+README.md
+sample.env
+docker-compose.yml
+/tests
+/.idea
+/env
+/haas_websocket/__pycache__
+/haas_websocket/cloud_functions
+/haas_websocket/docs
+/haas_websocket/example_messages
+/haas_websocket/gcp_credentials_template.json
