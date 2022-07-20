@@ -4,7 +4,7 @@ import logging
 
 # Will run on an interval in GCP as a cloud function to regenerate the bearer token each day
 client = datastore.Client()
-index = 1
+
 def parseIds (organizations):
     if organizations:
         ids = []
@@ -41,10 +41,15 @@ def getAllLocations(list):
 def createDatastoreTasks(list, kind):
     if list: 
         tasks = []
+        appliedLocations = []
         for entry in list:
-            newTask = datastore.Entity(client.key(kind, entry["id"]))
-            newTask.update(entry)
-            tasks.append(newTask)
+            if not entry["id"] in appliedLocations:
+                newTask = datastore.Entity(client.key(kind, entry["id"]))
+                newTask.update(entry)
+                appliedLocations.append(entry["id"])
+                tasks.append(newTask)
+            else:
+                logging.info(entry["id"] + " already in list")
         return tasks
     else:
         return None
@@ -54,12 +59,14 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 rest_agent = TokenAuth()
 rest_agent.signIn()
 organizations = rest_agent.getOrganizations()
+logging.info (organizations)
 listIds = parseIds(organizations)
 allThings = getAllThings(listIds)
 allLocations = getAllLocations(listIds)
 
 thingTasks = createDatastoreTasks(allThings, "HaasAlertThings")
 locationTasks = createDatastoreTasks(allLocations, "HaasAlertLocations")
+client.put_multi(thingTasks)
 client.put_multi(locationTasks)
 
 rest_agent.signOut()
