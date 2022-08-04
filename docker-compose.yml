@@ -1,10 +1,12 @@
 version: "3.9"
 services:
-  haas_alert:
+  haas_alert_ingest:
     build:
       context: .
       dockerfile: Dockerfile
-    image: haas_alert
+    image: haas_alert_ingest
+    ports:
+    - containerPort: 8080
     environment:
       HAAS_API_ENDPOINT: ${HAAS_API_ENDPOINT}
       HAAS_AUTH_ENDPOINT: ${HAAS_AUTH_ENDPOINT}
@@ -19,3 +21,4 @@ services:
       LOCATION_TOPIC: ${LOCATION_TOPIC}
       POINT_TOPIC: ${POINT_TOPIC}
       THING_TOPIC: ${THING_TOPIC}
+      

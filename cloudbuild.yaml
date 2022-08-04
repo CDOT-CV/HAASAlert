@@ -1,0 +1,14 @@
+steps:
+  # Build the container image
+  - name: python
+    entrypoint: pip
+    args: ["install", "-r", "requirements.txt", "--user"]
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'us.gcr.io/cdot-oim-cv-dev/haas_alert_ingest', '.' ]
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push',  'us.gcr.io/cdot-oim-cv-dev/haas_alert_ingest']
+# Store images in Google Artifact Registry 
+images:
+  - us.gcr.io/cdot-oim-cv-dev/haas_alert_ingest

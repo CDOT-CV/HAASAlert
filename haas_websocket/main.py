@@ -2,8 +2,35 @@ import os
 import json
 import websocket
 import logging
+import signal
+import sys
 from haas_websocket.rest.haas_rest_handler import TokenAuth
 from google.cloud import pubsub_v1
+from flask import Flask, request
+from flask_executor import Executor
+
+app = Flask(__name__)
+executer = Executor(app)
+running = False
+
+@app.get("/")
+def hello():
+    """Return a friendly HTTP greeting."""
+    who = request.args.get("who", default="World")
+    return f"Hello {who}!\n"
+
+@app.get("/start_websocket")
+def init():
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    publisher = pubsub_v1.PublisherClient()
+    executer.submit(startWebsocket,publisher)
+    return f"Successfully started websocket!\n"
+
+def signal_handler(sig, frame):
+    global running
+    running = False
+    print('You pressed Ctrl+C!')
+    sys.exit(0)
 
 def restSignIn():
     rest_agent = TokenAuth()
@@ -48,15 +75,14 @@ def filterMessage(message,publisher):
     
     return returnMessage, published
 
-def running():
-    return True
-
 def startWebsocket(publisher):
+    global running
+    running = True
     rest = restSignIn()
     b_token = rest.getToken()
     ws_endpoint = os.getenv('HAAS_WSS_ENDPOINT')
     ws = websocket.create_connection(ws_endpoint+b_token)
-    while running() == True:
+    while running == True:
         check_pass = rest.checkPassword()
         check_token = rest.checkToken()
         if check_pass == False:
@@ -84,6 +110,5 @@ def startWebsocket(publisher):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-    publisher = pubsub_v1.PublisherClient()
-    startWebsocket(publisher)
+    signal.signal(signal.SIGINT, signal_handler)
+    app.run(host="localhost", port=8080, debug=True)

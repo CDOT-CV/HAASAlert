@@ -8,3 +8,4 @@ gcloud==0.18.3
 google-cloud-pubsub==2.12.1
 google-cloud-secret-manager==2.10.0
 google-cloud-datastore==2.6.0
+Flask-Executor==0.10.0
