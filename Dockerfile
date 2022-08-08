@@ -6,6 +6,5 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
-RUN export GOOGLE_APPLICATION_CREDENTIALS="/usr/src/app/haas_websocket/gcp_credentials.json"
-CMD [ "python", "-m", "haas_websocket.main" ]
+EXPOSE 8080
+CMD ["gunicorn"  , "-b", "0.0.0.0:8080", "haas_websocket.wsgi:app"]
