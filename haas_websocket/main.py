@@ -3,44 +3,42 @@ import json
 import websocket
 import logging
 import signal
+import time
 import sys
 import threading
+import atexit
 from haas_websocket.rest.haas_rest_handler import TokenAuth
 from google.cloud import pubsub_v1
 from flask import Flask, request
 
 app = Flask(__name__)
 running = False
+start_time_list = []
 
 @app.get("/")
-def hello():
+def heartbeat():
+    global running, thread, start_time_list
     """Return a friendly HTTP greeting."""
     who = request.args.get("who", default="World")
-    return f"Hello {who}!\n"
+    if (running):
+        if (thread.is_alive()):
+            return f"Hello {who}!\n Websocket STATUS is running: {str(running)}, start time list of length {len(start_time_list)}: {str(start_time_list)}, Websocket thread is alive: {str(thread.is_alive())}"
+        else:
+            start()
+            return f"Hello {who}!\n Websocket RE-STARTING, status: {str(running)}, at EPOCH time: {str(start_time_list[len(start_time_list)-1])} seconds \n Websocket thread is: {str(thread.is_alive())}"
+    else:
+        start()
+        return f"Hello {who}!\n Websocket STARTING, status: {str(running)}, at EPOCH time: {str(start_time_list[len(start_time_list)-1])} seconds \n Websocket thread is: {str(thread.is_alive())}"
 
-@app.get("/start_websocket")
-def start_websocket():
-    global running, thread
-    if running == False:
-        publisher = pubsub_v1.PublisherClient()
-        logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-        thread = threading.Thread(target=startWebsocket, name="websocket thread", args=(publisher,))
-        thread.start()
-        return f"Successfully started websocket!\n"
-    else:
-        return f"Websocket is already started."
-    
-@app.get("/status")
-def status():
-    global thread
-    state = thread.is_alive()
-    if state == True:
-        status = 'Alive'
-    else:
-        status = 'Failed'
-        
-    return f"Websocket status: {status}."
-        
+
+def start():
+    global running, thread, start_time_list
+    publisher = pubsub_v1.PublisherClient()
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    thread = threading.Thread(target=startWebsocket, name="websocket thread", args=(publisher,))
+    thread.start()
+    start_time = int(time.time())
+    start_time_list.append(start_time)
         
 def signal_handler(sig, frame):
     global running, thread
@@ -55,7 +53,8 @@ def restSignIn():
 
 def publishMessage(publisher, path, message):
     future = publisher.publish(path, message)
-
+    return future
+    
 def filterMessage(message,publisher):
     project_id = os.getenv('PROJECT_ID')
     if not project_id:
@@ -86,7 +85,8 @@ def filterMessage(message,publisher):
     else:
         returnMessage = 'Unknown'
     if path and returnMessage:
-        publishMessage(publisher,path,encoded)
+        future = publishMessage(publisher,path,encoded)
+        logging.info('Publish message: %s',future.result())
         published = True
     
     return returnMessage, published
@@ -124,6 +124,7 @@ def startWebsocket(publisher):
     rest.signOut()
     ws.close()
 
+start()
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)

@@ -21,4 +21,4 @@ services:
       LOCATION_TOPIC: ${LOCATION_TOPIC}
       POINT_TOPIC: ${POINT_TOPIC}
       THING_TOPIC: ${THING_TOPIC}
-      
+      GOOGLE_APPLICATION_CREDENTIALS: "/usr/src/app/haas_websocket/gcp_credentials.json"
