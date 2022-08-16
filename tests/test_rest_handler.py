@@ -24,7 +24,7 @@ def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_c
     mTockenAuth.tokenUpdate.assert_called_with()
 
 
-@patch('google.cloud.secretmanager.SecretManagerServiceClient')
+@patch('google.cloud.secretmanager_v1.SecretManagerServiceClient')
 @patch('google.cloud.secretmanager_v1.services.secret_manager_service.pagers.ListSecretVersionsPager')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
@@ -43,7 +43,7 @@ def test_rest_handler_get_secret_version(mock_smc, mock_lsvp):
     assert secret_string == None
 
 
-@patch("google.cloud.secretmanager.SecretManagerServiceClient")
+@patch("google.cloud.secretmanager_v1.SecretManagerServiceClient")
 @patch.dict(os.environ, {"PROJECT_ID":"random_id"},clear=True)
 def test_rest_handler_set_secret(mock_smc):
     mock_smc.return_value.add_secret_version.return_value = 'success'
@@ -52,7 +52,7 @@ def test_rest_handler_set_secret(mock_smc):
 
     assert response == 'success'
 
-@patch("google.cloud.secretmanager.SecretManagerServiceClient")
+@patch("google.cloud.secretmanager_v1.SecretManagerServiceClient")
 @patch.dict(os.environ,{},clear=True)
 def test_rest_handler_set_none(mock_smc):
     obj = TokenAuth()
@@ -187,16 +187,6 @@ def test_rest_handler_refresh_token_failure(mock_rest_smg, mock_rest_sms):
     response = obj.refreshToken()
 
     assert response is None
-    
-@patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
-def test_rest_handler_set_password(mock_rest_sms):
-        
-    obj = TokenAuth()
-    obj.setPassword('password')
-
-    mock_rest_sms.assert_called_with('key','password')
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
 @patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
@@ -217,28 +207,6 @@ def test_rest_handler_check_token_false(mock_rest_sms):
     obj = TokenAuth()
     obj.b_token = 'different_token'
     response = obj.checkToken()
-
-    assert response == False
-    
-@patch.object(TokenAuth, 'secretManagerGet', return_value = 'password')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
-def test_rest_handler_check_password_true(mock_rest_sms):
-    
-    obj = TokenAuth()
-    obj.api_password = 'password'
-    response = obj.checkPassword()
-
-    assert response == True
-    
-@patch.object(TokenAuth, 'secretManagerGet', return_value = 'password')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
-def test_rest_handler_check_password_false(mock_rest_sms):
-    
-    obj = TokenAuth()
-    obj.api_password = 'different_password'
-    response = obj.checkPassword()
 
     assert response == False
 

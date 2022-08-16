@@ -57,18 +57,12 @@ def startWebsocket(publisher):
     ws_endpoint = os.getenv('HAAS_WSS_ENDPOINT')
     ws = websocket.create_connection(ws_endpoint+b_token)
     while running() == True:
-        check_pass = rest.checkPassword()
         check_token = rest.checkToken()
-        if check_pass == False:
-            ws.close()
-            rest.passwordUpdate() # updates local token from the secret manager
-            b_token = rest.signIn()
-            ws = websocket.create_connection(ws_endpoint+b_token) # restarts the websocket
         if check_token == False:
             ws.close()
             b_token = rest.tokenUpdate() # updates local token from the secret manager
             ws = websocket.create_connection(ws_endpoint+b_token) # restarts the websocket
-        if check_pass == True and check_token == True:
+        if check_token == True:
             try:
                 result = ws.recv() 
                 msg_type, published = filterMessage(result,publisher)

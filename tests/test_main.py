@@ -150,23 +150,6 @@ def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_c
     main.startWebsocket(pubsub)
     mTockenAuth.tokenUpdate.assert_called_with()
 
-@patch('google.cloud.pubsub_v1.PublisherClient')
-@patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
-@patch.object(main, 'running', side_effect = [True,False])
-@patch.object(main, 'filterMessage')
-@patch.object(websocket,'create_connection')
-@patch.dict(os.environ, {
-    'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
-    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
-})
-def test_main_failed_password(pubsub, mTockenAuth, running, filterMessage, create_connection):
-    mTockenAuth.signIn = MagicMock(return_value = 'token')
-    mTockenAuth.checkPassword = MagicMock(return_value = False)
-    main.restSignIn = MagicMock(return_value = mTockenAuth)
-    main.startWebsocket(pubsub)
-    mTockenAuth.passwordUpdate.assert_called_with()
-
 def test_main_running():
     response = main.running()
     assert response == True
