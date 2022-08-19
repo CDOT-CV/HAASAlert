@@ -69,7 +69,7 @@ def startWebsocket(publisher):
                 if published == True:
                     logging.info(f"Successfully pushed {msg_type} message pub/sub. \nFull Message: {result}")
                 else:
-                    logging.info(f"Successfully recieved {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
+                    logging.info(f"Successfully received {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
             except KeyboardInterrupt:
                 break
             
