@@ -13,7 +13,8 @@ from unittest.mock import MagicMock, patch
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC',
-    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
+    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
+    'HAAS_API_ENDPOINT': 'api.endpoint'
 })
 def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_connection):
     mTockenAuth.signIn = MagicMock(return_value = 'token')
@@ -29,7 +30,8 @@ def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_c
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC',
-    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
+    'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
+    'HAAS_API_ENDPOINT': 'api.endpoint'
 })
 def test_rest_handler_get_secret_version(mock_smc, mock_lsvp):
     mock_smc.secret_path = MagicMock(return_value = 'path')
@@ -62,8 +64,15 @@ def test_rest_handler_set_none(mock_smc):
 
 @patch.object(TokenAuth, 'secretManagerGet')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_sign_in(mock_rest_smg, mock_rest_sms):
     obj = TokenAuth()
 
@@ -79,8 +88,15 @@ def test_rest_handler_sign_in(mock_rest_smg, mock_rest_sms):
 
 @patch.object(TokenAuth, 'secretManagerGet')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_sign_in_no_data(mock_rest_smg, mock_rest_sms):
     obj = TokenAuth()
 
@@ -96,8 +112,15 @@ def test_rest_handler_sign_in_no_data(mock_rest_smg, mock_rest_sms):
 
 @patch.object(TokenAuth, 'secretManagerGet')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_sign_in_failure(mock_rest_smg, mock_rest_sms):
     obj = TokenAuth()
 
@@ -110,9 +133,15 @@ def test_rest_handler_sign_in_failure(mock_rest_smg, mock_rest_sms):
 
     assert response is None
 
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint",
-"HAAS_AUTH_KEY":"something/some.auth.com","HAAS_API_VERSION":"100"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_sign_out_success():
     
     obj = TokenAuth()
@@ -125,9 +154,15 @@ def test_rest_handler_sign_out_success():
 
     assert response == True
 
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint",
-"HAAS_AUTH_KEY":"something/some.auth.com","HAAS_API_VERSION":"100"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_sign_out_failure():
     
     obj = TokenAuth()
@@ -142,8 +177,15 @@ def test_rest_handler_sign_out_failure():
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'refresh_token')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_refresh_token(mock_rest_smg, mock_rest_sms):
 
     haas_response = requests.Response
@@ -158,8 +200,15 @@ def test_rest_handler_refresh_token(mock_rest_smg, mock_rest_sms):
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'refresh_token')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_refresh_token_no_data(mock_rest_smg, mock_rest_sms):
 
     haas_response = requests.Response
@@ -174,8 +223,15 @@ def test_rest_handler_refresh_token_no_data(mock_rest_smg, mock_rest_sms):
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'refresh_token')
 @patch.object(TokenAuth, 'secretManagerSet')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_refresh_token_failure(mock_rest_smg, mock_rest_sms):
 
     haas_response = requests.Response
@@ -189,8 +245,15 @@ def test_rest_handler_refresh_token_failure(mock_rest_smg, mock_rest_sms):
     assert response is None
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_check_token_true(mock_rest_sms):
     
     obj = TokenAuth()
@@ -200,8 +263,15 @@ def test_rest_handler_check_token_true(mock_rest_sms):
     assert response == True
     
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_check_token_false(mock_rest_sms):
     
     obj = TokenAuth()
@@ -211,8 +281,15 @@ def test_rest_handler_check_token_false(mock_rest_sms):
     assert response == False
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_token_update(mock_rest_sms):
     
     obj = TokenAuth()
@@ -221,8 +298,15 @@ def test_rest_handler_token_update(mock_rest_sms):
     assert response == 'bearer_token'
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
-@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
-"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+@patch.dict(os.environ, {
+    "HAAS_AUTH_USERNAME_KEY":"key", 
+    "HAAS_AUTH_PASSWORD_KEY":"key",
+    "HAAS_BEARER_TOKEN_KEY": "key", 
+    "HAAS_REFRESH_TOKEN_KEY": "key",
+    "HAAS_AUTH_ENDPOINT": "auth_endpoint",
+    "HAAS_API_ENDPOINT": "api_endpoint",
+    "PROJECT_ID":"random_id"
+})
 def test_rest_handler_get_token(mock_rest_sms):
     
     obj = TokenAuth()
