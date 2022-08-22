@@ -3,7 +3,6 @@ from google.cloud import datastore
 import logging
 
 # Will run on an interval in GCP as a cloud function to regenerate the bearer token each day
-client = datastore.Client()
 
 def parseIds (organizations):
     if organizations:
@@ -14,7 +13,7 @@ def parseIds (organizations):
     else:
         return None
 
-def getAllThings(list):
+def getAllThings(rest_agent, list):
     if list:
         things = []
         for id in list:
@@ -26,7 +25,7 @@ def getAllThings(list):
     else:
         return None
 
-def getAllLocations(list):
+def getAllLocations(rest_agent, list):
     if list:
         locations = []
         for id in list:
@@ -38,35 +37,41 @@ def getAllLocations(list):
     else:
         return None
 
-def createDatastoreTasks(list, kind):
+def createDatastoreTasks(client, list, kind):
     if list: 
         tasks = []
-        appliedLocations = []
+        appliedTasks = []
         for entry in list:
-            if not entry["id"] in appliedLocations:
+            if not entry["id"] in appliedTasks:
                 newTask = datastore.Entity(client.key(kind, entry["id"]))
                 newTask.update(entry)
-                appliedLocations.append(entry["id"])
+                appliedTasks.append(entry["id"])
                 tasks.append(newTask)
+                logging.info(entry["id"] + " added to datastore")
             else:
                 logging.info(entry["id"] + " already in list")
         return tasks
     else:
         return None
 
-# def refresh_token(request):
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-rest_agent = TokenAuth()
-rest_agent.signIn()
-organizations = rest_agent.getOrganizations()
-logging.info (organizations)
-listIds = parseIds(organizations)
-allThings = getAllThings(listIds)
-allLocations = getAllLocations(listIds)
+# Entry point for cloud function
+def entry(request):
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    rest_agent = TokenAuth()
+    rest_agent.signIn()
+    organizations = rest_agent.getOrganizations()
+    logging.info (f'organizations: {organizations}')
+    listIds = parseIds(organizations)
+    logging.info (f'listIds: {listIds}')
+    allThings = getAllThings(rest_agent, listIds)
+    logging.info (f'allThings: {allThings}')
+    allLocations = getAllLocations(rest_agent, listIds)
+    logging.info (f'allLocations: {allLocations}')
 
-thingTasks = createDatastoreTasks(allThings, "HaasAlertThings")
-locationTasks = createDatastoreTasks(allLocations, "HaasAlertLocations")
-client.put_multi(thingTasks)
-client.put_multi(locationTasks)
+    datastore_client = datastore.Client()
+    thingTasks = createDatastoreTasks(datastore_client, allThings, "HaasAlertThings")
+    locationTasks = createDatastoreTasks(datastore_client, allLocations, "HaasAlertLocations")
+    datastore_client.put_multi(thingTasks)
+    datastore_client.put_multi(locationTasks)
 
-rest_agent.signOut()
+    rest_agent.signOut()

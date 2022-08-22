@@ -1,0 +1,66 @@
+{
+   "meta":{
+      "page":1,
+      "per_page":50,
+      "total":3
+   },
+   "data":[
+      {
+         "id":"id",
+         "external_id":"",
+         "name":"CSP - I70 Supervisor",
+         "is_registered":true,
+         "type":"police",
+         "subtype":"",
+         "lat":10.0000000000,
+         "lon":10.0000000000,
+         "alt":10.0000000000,
+         "location":{
+            
+         },
+         "organization":{
+            "id":"id"
+         },
+         "speed":28.722246,
+         "course":89.0,
+         "last_point_is_active":false,
+         "last_point":"2022-01-21T00:00:00.00Z",
+         "last_heartbeat":"2022-01-21T00:00:00.00Z",
+         "registry_number":"",
+         "vin_number":"",
+         "license_plate_number":"",
+         "in_service":true,
+         "is_publicly_alerting":true,
+         "manager_orgs":[
+            {
+               "id":"id",
+               "name":"CO - Colorado Dept of Transportation",
+               "phone_number":"number",
+               "address1":"road",
+               "address2":"",
+               "city":"Denver",
+               "state":"CO",
+               "postal_code":"80210",
+               "country":"US",
+               "contact_name":"name",
+               "contact_email":"name@gmail.com",
+               "max_number_of_things":100,
+               "number_of_registered_things":0,
+               "organization_type":"maintenance",
+               "features":{
+                  "r2r":false
+               }
+            }
+         ],
+         "accessor_orgs":[
+            
+         ],
+         "customer_ids":[
+            
+         ],
+         "features":{
+            "r2r":true
+         }
+      }
+   ]
+}

@@ -1,6 +1,7 @@
 import os
 import requests
 import websocket
+import json
 from haas_websocket import main
 from haas_websocket.rest.haas_rest_handler import TokenAuth
 from unittest.mock import MagicMock, patch
@@ -16,13 +17,13 @@ from unittest.mock import MagicMock, patch
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
     'HAAS_API_ENDPOINT': 'api.endpoint'
 })
-def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_connection):
-    mTockenAuth.signIn = MagicMock(return_value = 'token')
-    mTockenAuth.checkPassword = MagicMock(return_value = True)
-    mTockenAuth.checkToken = MagicMock(return_value = False)
-    main.restSignIn = MagicMock(return_value = mTockenAuth)
+def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_connection):
+    mTokenAuth.signIn = MagicMock(return_value = 'token')
+    mTokenAuth.checkPassword = MagicMock(return_value = True)
+    mTokenAuth.checkToken = MagicMock(return_value = False)
+    main.restSignIn = MagicMock(return_value = mTokenAuth)
     main.startWebsocket(pubsub)
-    mTockenAuth.tokenUpdate.assert_called_with()
+    mTokenAuth.tokenUpdate.assert_called_with()
 
 
 @patch('google.cloud.secretmanager_v1.SecretManagerServiceClient')
@@ -314,3 +315,83 @@ def test_rest_handler_get_token(mock_rest_sms):
     response = obj.getToken()
 
     assert response == 'bearer_token'
+
+
+
+
+@patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
+@patch.object(TokenAuth, 'secretManagerSet')
+@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+def test_rest_handler_getOrganizations(mock_rest_smg, mock_rest_sms):
+    with open('tests/support/sample_organizations.json', 'r') as f:
+        organizations_json = json.load(f)
+
+    haas_response = requests.Response
+    haas_response.status_code = 200
+    haas_response.content = json.dumps(organizations_json)
+    requests.get = MagicMock(return_value = haas_response)
+
+    obj = TokenAuth()
+    obj.b_token= 'bearer_token'
+    response = obj.getOrganizations()
+
+    assert response == organizations_json
+
+@patch.object(TokenAuth, 'secretManagerGet', return_value = None)
+@patch.object(TokenAuth, 'signIn', return_value = "bearer_token")
+@patch.object(TokenAuth, 'secretManagerSet')
+@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+def test_rest_handler_getOrganizations_fail(mock_rest_smg, mock_signIn, mock_rest_sms):
+    with open('tests/support/sample_organizations.json', 'r') as f:
+        organizations_json = json.load(f)
+
+    haas_response = requests.Response
+    haas_response.status_code = 200
+    haas_response.content = json.dumps(organizations_json)
+    requests.get = MagicMock(return_value = haas_response)
+
+    obj = TokenAuth()
+    obj.b_token= 'bearer_token'
+    response = obj.getOrganizations()
+
+    assert response == organizations_json
+
+@patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
+@patch.object(TokenAuth, 'secretManagerSet')
+@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+def test_rest_handler_getLocations(mock_rest_smg, mock_rest_sms):
+    with open('tests/support/sample_location.json', 'r') as f:
+        locations_json = json.load(f)
+
+    haas_response = requests.Response
+    haas_response.status_code = 200
+    haas_response.content = json.dumps(locations_json)
+    requests.get = MagicMock(return_value = haas_response)
+
+    obj = TokenAuth()
+    obj.b_token = 'bearer_token'
+    response = obj.getLocations("id")
+
+    assert response == locations_json
+
+@patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
+@patch.object(TokenAuth, 'secretManagerSet')
+@patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
+"HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
+def test_rest_handler_getThings(mock_rest_smg, mock_rest_sms):
+    with open('tests/support/sample_things.json', 'r') as f:
+        things_json = json.load(f)
+
+    haas_response = requests.Response
+    haas_response.status_code = 200
+    haas_response.content = json.dumps(things_json)
+    requests.get = MagicMock(return_value = haas_response)
+
+    obj = TokenAuth()
+    obj.b_token = 'bearer_token'
+    response = obj.getThings("id")
+
+    assert response == things_json 
