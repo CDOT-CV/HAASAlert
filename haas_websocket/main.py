@@ -78,6 +78,8 @@ def startWebsocket(publisher):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    log_level = 'INFO' if "LOGGING_LEVEL" not in os.environ else os.environ['LOGGING_LEVEL'] 
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=log_level)
+
     publisher = pubsub_v1.PublisherClient()
     startWebsocket(publisher)

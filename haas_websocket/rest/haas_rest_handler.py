@@ -27,14 +27,10 @@ class TokenAuth():
             return None
         try:
             client = secretmanager_v1.SecretManagerServiceClient()
-            parent = client.secret_path(self.id, secret_id)
-            sv_list = client.list_secret_versions
-            parent_list = sv_list(request={"parent": parent})
-            for version in parent_list:
-                if (version.state == 1):
-                    response = client.access_secret_version(request={"name": version.name})
-                    decoded = response.payload.data.decode("UTF-8")
-                    return decoded
+            path = client.secret_path(self.id, secret_id)
+            parent = path + "/versions/latest"
+            response = client.access_secret_version(request={"name": parent}).payload.data.decode("UTF-8")
+            return response
         except Exception as e:
             logging.error(f"HAAS_REST_HANDLER.secretManagerGet Could not get a secret version for the secret ID: {secret_id} \n{e}")
             return None

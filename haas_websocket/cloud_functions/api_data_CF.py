@@ -1,8 +1,13 @@
 from haas_websocket.rest.haas_rest_handler import TokenAuth
 from google.cloud import datastore
 import logging
+import os
 
-# Will run on an interval in GCP as a cloud function to regenerate the bearer token each day
+
+def setClients():
+    rest_agent = TokenAuth()
+    datastore_client = datastore.Client()
+    return rest_agent, datastore_client
 
 def parseIds (organizations):
     if organizations:
@@ -54,12 +59,10 @@ def createDatastoreTasks(client, list, kind):
     else:
         return None
 
-# Entry point for cloud function
-def entry(request):
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-    rest_agent = TokenAuth()
+def parseApiData(rest_agent):
     rest_agent.signIn()
     organizations = rest_agent.getOrganizations()
+    print(rest_agent)
     logging.info (f'organizations: {organizations}')
     listIds = parseIds(organizations)
     logging.info (f'listIds: {listIds}')
@@ -67,11 +70,33 @@ def entry(request):
     logging.info (f'allThings: {allThings}')
     allLocations = getAllLocations(rest_agent, listIds)
     logging.info (f'allLocations: {allLocations}')
+    print(f'locations: {allLocations}, things: {allThings}')
+    return allLocations, allThings
 
-    datastore_client = datastore.Client()
+def uploadApiData(datastore_client, allLocations, allThings):
     thingTasks = createDatastoreTasks(datastore_client, allThings, "HaasAlertThings")
     locationTasks = createDatastoreTasks(datastore_client, allLocations, "HaasAlertLocations")
-    datastore_client.put_multi(thingTasks)
-    datastore_client.put_multi(locationTasks)
+    if thingTasks:
+        datastore_client.put_multi(thingTasks)
+        logging.info(f'Uploaded {len(thingTasks)} to datastore.')
+    else:
+        logging.warning(f'No thing tasks to upload to datastore')
+    if locationTasks:
+        datastore_client.put_multi(locationTasks)
+        logging.info(f'Uploaded {len(locationTasks)} to datastore.')
+    else:
+        logging.warning(f'No location tasks to upload to datastore')
 
+
+# Entry point for cloud function
+def entry(request):
+    log_level = 'INFO' if "LOGGING_LEVEL" not in os.environ else os.environ['LOGGING_LEVEL'] 
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=log_level)
+
+    rest_agent, datastore_client = setClients()
+    allLocations, allThings = parseApiData(rest_agent)
+    uploadApiData(datastore_client, allLocations, allThings)
+    
     rest_agent.signOut()
+
+# entry('entry')

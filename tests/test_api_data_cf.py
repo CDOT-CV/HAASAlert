@@ -1,23 +1,24 @@
-import os
-import requests
-import websocket
 import json
 import haas_websocket.cloud_functions.api_data_CF as api_data_CF
 from unittest.mock import MagicMock, patch
 
+with open('tests/support/sample_organizations.json', 'r') as f:
+    organizations_json = json.load(f)
+with open('tests/support/sample_thing_list.json', 'r') as f:
+    things_json = json.load(f)
+with open('tests/support/sample_locations_list.json', 'r') as f:
+    locations_json = json.load(f)
+with open('tests/support/sample_location.json', 'r') as f:
+    location_json = json.load(f)
 
 def test_parseIds():
-    with open('tests/support/sample_organizations.json', 'r') as f:
-        organizations_json = json.load(f)
-
     api_data = api_data_CF
     ids = api_data.parseIds(organizations_json)
     
     assert ids == ['id_1', 'id_2']
     
 def test_parseIds_none():
-    with open('tests/support/sample_organizations.json', 'r') as f:
-        organizations_json = None
+    organizations_json = None
 
     api_data = api_data_CF
     ids = api_data.parseIds(organizations_json)
@@ -26,9 +27,7 @@ def test_parseIds_none():
     
 @patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 def test_getAllThings(mTokenAuth):
-    with open('tests/support/sample_thing_list.json', 'r') as f:
-        things_json = json.load(f)
-        data = things_json['data']
+    data = things_json['data']
 
     mTokenAuth.getThings = MagicMock(return_value = things_json)
 
@@ -39,7 +38,6 @@ def test_getAllThings(mTokenAuth):
 
 @patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 def test_getAllThings_none(mTokenAuth):
-
     mTokenAuth.getThings = MagicMock(return_value = None)
 
     api_data = api_data_CF
@@ -49,9 +47,7 @@ def test_getAllThings_none(mTokenAuth):
 
 @patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 def test_getAllLocations(mTokenAuth):
-    with open('tests/support/sample_locations_list.json', 'r') as f:
-        locations_json = json.load(f)
-        data = locations_json['data']
+    data = locations_json['data']
 
     mTokenAuth.getLocations = MagicMock(return_value = locations_json)
 
@@ -62,7 +58,6 @@ def test_getAllLocations(mTokenAuth):
 
 @patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 def test_getAllLocations_none(mTokenAuth):
-
     mTokenAuth.getThings = MagicMock(return_value = None)
 
     api_data = api_data_CF
@@ -72,9 +67,7 @@ def test_getAllLocations_none(mTokenAuth):
     
 @patch('google.cloud.datastore.Client')
 def test_createDatastoreTasks(mDatastoreClient):
-    with open('tests/support/sample_location.json', 'r') as f:
-        location_json = json.load(f)
-        id = location_json[0]['id']
+    id = location_json[0]['id']
     
     kind = "HaasAlertLocations"
     api_data = api_data_CF
@@ -86,7 +79,32 @@ def test_createDatastoreTasks(mDatastoreClient):
 def test_createDatastoreTasks_none(mDatastoreClient):
    
     kind = "HaasAlertLocations"
-    api_data = api_data_CF
-    locations = api_data.createDatastoreTasks(mDatastoreClient, [], kind)
+    api_data_CF.createDatastoreTasks(mDatastoreClient, [], kind)
     
     mDatastoreClient.key.assert_not_called()
+
+@patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
+@patch('google.cloud.datastore.Client')
+def test_api_data(mTokenAuth, mDatastoreClient):
+    mTokenAuth.signIn = MagicMock(return_value = "token")
+    mTokenAuth.getOrganizations = MagicMock(return_value = organizations_json)
+    mTokenAuth.getThings = MagicMock(return_value = things_json)
+    mTokenAuth.getLocations = MagicMock(return_value = locations_json)
+    
+    allLocations, allThings = api_data_CF.parseApiData(mTokenAuth)
+    api_data_CF.uploadApiData(mDatastoreClient, allLocations, allThings)
+    
+    mDatastoreClient.put_multi.assert_called()
+    assert allLocations != None, allThings != None
+
+@patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
+@patch('google.cloud.datastore.Client')
+def test_no_api_data(mTokenAuth, mDatastoreClient):
+    mTokenAuth.signIn = MagicMock(return_value = None)
+    mTokenAuth.getOrganizations = MagicMock(return_value = None)
+    
+    allLocations, allThings = api_data_CF.parseApiData(mTokenAuth)
+    api_data_CF.uploadApiData(mDatastoreClient, allLocations, allThings)
+    
+    mDatastoreClient.put_multi.assert_not_called()
+    assert allLocations == None, allThings == None

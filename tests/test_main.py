@@ -12,10 +12,10 @@ from unittest.mock import MagicMock, patch
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
-def test_main_rest_sign_in(pubsub, mTockenAuth):
-    main.TokenAuth = MagicMock(return_value = mTockenAuth)
+def test_main_rest_sign_in(pubsub, mTokenAuth):
+    main.TokenAuth = MagicMock(return_value = mTokenAuth)
     main.restSignIn()
-    mTockenAuth.signIn.assert_called_with()
+    mTokenAuth.signIn.assert_called_with()
 
 #--------------------------------------------------------------------------------unit tests for filter module--------------------------------------------------------------------------------
 
@@ -104,11 +104,11 @@ def test_main_filter_keep_alive(pubsub):
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
-def test_main_ws_publish(pubsub, mTockenAuth, running, filterMessage, create_connection):
-    mTockenAuth.signIn = MagicMock(return_value = 'token')
-    mTockenAuth.checkPassword = MagicMock(return_value = True)
-    mTockenAuth.checkToken = MagicMock(return_value = True)
-    main.restSignIn = MagicMock(return_value = mTockenAuth)
+def test_main_ws_publish(pubsub, mTokenAuth, running, filterMessage, create_connection):
+    mTokenAuth.signIn = MagicMock(return_value = 'token')
+    mTokenAuth.checkPassword = MagicMock(return_value = True)
+    mTokenAuth.checkToken = MagicMock(return_value = True)
+    main.restSignIn = MagicMock(return_value = mTokenAuth)
     websocket.create_connection().recv = MagicMock(return_value = 'value')
     main.startWebsocket(pubsub)
     main.filterMessage.assert_called_with('value',pubsub)
@@ -123,11 +123,11 @@ def test_main_ws_publish(pubsub, mTockenAuth, running, filterMessage, create_con
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
-def test_main_ws_failed_publish(pubsub, mTockenAuth, running, filterMessage, create_connection):
-    mTockenAuth.signIn = MagicMock(return_value = 'token')
-    mTockenAuth.checkPassword = MagicMock(return_value = True)
-    mTockenAuth.checkToken = MagicMock(return_value = True)
-    main.restSignIn = MagicMock(return_value = mTockenAuth)
+def test_main_ws_failed_publish(pubsub, mTokenAuth, running, filterMessage, create_connection):
+    mTokenAuth.signIn = MagicMock(return_value = 'token')
+    mTokenAuth.checkPassword = MagicMock(return_value = True)
+    mTokenAuth.checkToken = MagicMock(return_value = True)
+    main.restSignIn = MagicMock(return_value = mTokenAuth)
     websocket.create_connection().recv = MagicMock(return_value = 'value')
     main.startWebsocket(pubsub)
     main.filterMessage.assert_called_with('value',pubsub)
@@ -142,13 +142,13 @@ def test_main_ws_failed_publish(pubsub, mTockenAuth, running, filterMessage, cre
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
-def test_main_failed_token(pubsub, mTockenAuth, running, filterMessage, create_connection):
-    mTockenAuth.signIn = MagicMock(return_value = 'token')
-    mTockenAuth.checkPassword = MagicMock(return_value = True)
-    mTockenAuth.checkToken = MagicMock(return_value = False)
-    main.restSignIn = MagicMock(return_value = mTockenAuth)
+def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_connection):
+    mTokenAuth.signIn = MagicMock(return_value = 'token')
+    mTokenAuth.checkPassword = MagicMock(return_value = True)
+    mTokenAuth.checkToken = MagicMock(return_value = False)
+    main.restSignIn = MagicMock(return_value = mTokenAuth)
     main.startWebsocket(pubsub)
-    mTockenAuth.tokenUpdate.assert_called_with()
+    mTokenAuth.tokenUpdate.assert_called_with()
 
 def test_main_running():
     response = main.running()

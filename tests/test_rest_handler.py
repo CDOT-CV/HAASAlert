@@ -27,24 +27,22 @@ def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_co
 
 
 @patch('google.cloud.secretmanager_v1.SecretManagerServiceClient')
-@patch('google.cloud.secretmanager_v1.services.secret_manager_service.pagers.ListSecretVersionsPager')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
     'HAAS_API_ENDPOINT': 'api.endpoint'
 })
-def test_rest_handler_get_secret_version(mock_smc, mock_lsvp):
-    mock_smc.secret_path = MagicMock(return_value = 'path')
-    mock_smc.list_secret_versions = MagicMock(return_value = mock_lsvp)
-    mock_smc.access_secret_version.return_value.payload.data = MagicMock(return_value = b'super_secret_token')
-    obj = TokenAuth()
+def test_rest_handler_get_secret_version(mock_smc):
+    test_response = 'mock'
     
-    secret_string = obj.secretManagerGet('secret_key')
+    mock_smc.return_value.secret_path.return_value = 'path'
+    mock_smc.return_value.access_secret_version.return_value.payload.data.decode.return_value = test_response
 
-    # TODO FIX THIS UNIT TEST
-    assert secret_string == None
+    obj = TokenAuth()
+    response = obj.secretManagerGet('secret_key')
 
+    assert response == test_response
 
 @patch("google.cloud.secretmanager_v1.SecretManagerServiceClient")
 @patch.dict(os.environ, {"PROJECT_ID":"random_id"},clear=True)
@@ -344,19 +342,16 @@ def test_rest_handler_getOrganizations(mock_rest_smg, mock_rest_sms):
 @patch.dict(os.environ,{"HAAS_AUTH_USERNAME_KEY":"key", "HAAS_AUTH_PASSWORD_KEY":"key", 
 "HAAS_BEARER_TOKEN_KEY": "key", "HAAS_REFRESH_TOKEN_KEY": "key", "HAAS_API_ENDPOINT":"endpoint"},clear=True)
 def test_rest_handler_getOrganizations_fail(mock_rest_smg, mock_signIn, mock_rest_sms):
-    with open('tests/support/sample_organizations.json', 'r') as f:
-        organizations_json = json.load(f)
 
     haas_response = requests.Response
-    haas_response.status_code = 200
-    haas_response.content = json.dumps(organizations_json)
+    haas_response.status_code = 404
     requests.get = MagicMock(return_value = haas_response)
 
     obj = TokenAuth()
     obj.b_token= 'bearer_token'
     response = obj.getOrganizations()
 
-    assert response == organizations_json
+    assert response == False
 
 @patch.object(TokenAuth, 'secretManagerGet', return_value = 'bearer_token')
 @patch.object(TokenAuth, 'secretManagerSet')
