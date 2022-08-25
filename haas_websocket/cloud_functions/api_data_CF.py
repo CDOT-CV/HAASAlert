@@ -78,14 +78,17 @@ def uploadApiData(datastore_client, allLocations, allThings):
     locationTasks = createDatastoreTasks(datastore_client, allLocations, "HaasAlertLocations")
     if thingTasks:
         datastore_client.put_multi(thingTasks)
-        logging.info(f'Uploaded {len(thingTasks)} to datastore.')
+        logging.info(f'Uploaded {len(thingTasks)} things to datastore.')
     else:
         logging.warning(f'No thing tasks to upload to datastore')
     if locationTasks:
         datastore_client.put_multi(locationTasks)
-        logging.info(f'Uploaded {len(locationTasks)} to datastore.')
+        logging.info(f'Uploaded {len(locationTasks)} locations to datastore.')
     else:
         logging.warning(f'No location tasks to upload to datastore')
+    
+    if locationTasks or thingTasks:
+        return len(locationTasks), len(thingTasks)
 
 
 # Entry point for cloud function
@@ -95,8 +98,7 @@ def entry(request):
 
     rest_agent, datastore_client = setClients()
     allLocations, allThings = parseApiData(rest_agent)
-    uploadApiData(datastore_client, allLocations, allThings)
-    
     rest_agent.signOut()
-
-# entry('entry')
+    locationUploadLength, thingUploadLength = uploadApiData(datastore_client, allLocations, allThings)
+    
+    return locationUploadLength, thingUploadLength

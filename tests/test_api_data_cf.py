@@ -108,3 +108,10 @@ def test_no_api_data(mTokenAuth, mDatastoreClient):
     
     mDatastoreClient.put_multi.assert_not_called()
     assert allLocations == None, allThings == None
+
+
+# OPTIONAL INTEGRATION TEST. WILL FAIL IF GCP CREDENTIALS ARE NOT AVAILABLE.
+def test_entry_integration():
+    locationUploadLength, thingUploadLength = api_data_CF.entry('message')
+    
+    assert locationUploadLength != None, thingUploadLength != None
