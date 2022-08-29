@@ -15,7 +15,6 @@ class TokenAuth():
         self.refresh_key = os.getenv('HAAS_REFRESH_TOKEN_KEY')
         self.auth_endpoint = os.getenv('HAAS_AUTH_ENDPOINT')
         self.api_endpoint = os.getenv('HAAS_API_ENDPOINT')
-        self.api_id = os.getenv('HAAS_API_ID')
         self.id = os.getenv('PROJECT_ID')
         self.r_token = "initialized"
         

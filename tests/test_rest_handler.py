@@ -23,7 +23,7 @@ def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_co
     mTokenAuth.checkToken = MagicMock(return_value = False)
     main.restSignIn = MagicMock(return_value = mTokenAuth)
     main.startWebsocket(pubsub)
-    mTokenAuth.tokenUpdate.assert_called_with()
+    mTokenAuth.refreshToken.assert_called_with()
 
 
 @patch('google.cloud.secretmanager_v1.SecretManagerServiceClient')

@@ -24,51 +24,12 @@ def test_main_rest_sign_in(pubsub, mTokenAuth):
     'PROJECT_ID': 'PROJECT_ID',
     'POINT_TOPIC': 'POINT_TOPIC'
 })
-def test_main_filter_point(pubsub):
+def test_main_filter(pubsub):
     message = '{"type":"point"}'
     response,success = main.filterMessage(message,pubsub)
     encoded = message.encode("utf-8")
     pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'POINT_TOPIC'),encoded)
     assert response == 'point'
-    assert success == True
-
-@patch('google.cloud.pubsub_v1.PublisherClient')
-@patch.dict(os.environ, {
-    'PROJECT_ID': 'PROJECT_ID',
-    'HEARTBEAT_TOPIC': 'HEARTBEAT_TOPIC'
-})
-def test_main_filter_heartbeat(pubsub):
-    message = '{"type":"heartbeat"}'
-    response,success = main.filterMessage(message,pubsub)
-    encoded = message.encode("utf-8")
-    pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'HEARTBEAT_TOPIC'),encoded)
-    assert response == 'heartbeat'
-    assert success == True
-
-@patch('google.cloud.pubsub_v1.PublisherClient')
-@patch.dict(os.environ, {
-    'PROJECT_ID': 'PROJECT_ID',
-    'THING_TOPIC': 'THING_TOPIC'
-})
-def test_main_filter_thing(pubsub):
-    message = '{"type":"thing"}'
-    response,success = main.filterMessage(message,pubsub)
-    encoded = message.encode("utf-8")
-    pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'THING_TOPIC'),encoded)
-    assert response == 'thing'
-    assert success == True
-
-@patch('google.cloud.pubsub_v1.PublisherClient')
-@patch.dict(os.environ, {
-    'PROJECT_ID': 'PROJECT_ID',
-    'LOCATION_TOPIC': 'LOCATION_TOPIC'
-})
-def test_main_filter_location(pubsub):
-    message = '{"type":"location"}'
-    response,success = main.filterMessage(message,pubsub)
-    encoded = message.encode("utf-8")
-    pubsub.publish.assert_called_with(pubsub.topic_path('PROJECT_ID', 'LOCATION_TOPIC'),encoded)
-    assert response == 'location'
     assert success == True
     
 @patch('google.cloud.pubsub_v1.PublisherClient')
@@ -148,7 +109,7 @@ def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_co
     mTokenAuth.checkToken = MagicMock(return_value = False)
     main.restSignIn = MagicMock(return_value = mTokenAuth)
     main.startWebsocket(pubsub)
-    mTokenAuth.tokenUpdate.assert_called_with()
+    mTokenAuth.refreshToken.assert_called_with()
 
 def test_main_running():
     response = main.running()
