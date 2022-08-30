@@ -22,10 +22,7 @@ def getAllThings(rest_agent, list):
     if list:
         things = []
         for id in list:
-            newThings = rest_agent.getThings(id)
-            if newThings:
-                for thing in newThings['data']:
-                    things.append(thing)
+            things += rest_agent.getThings(id)
         return things
     else:
         return None
@@ -34,10 +31,7 @@ def getAllLocations(rest_agent, list):
     if list:
         locations = []
         for id in list:
-            newLocations = rest_agent.getLocations(id)
-            if newLocations:
-                for thing in newLocations['data']:
-                    locations.append(thing)
+            locations += rest_agent.getLocations(id)
         return locations
     else:
         return None
@@ -52,9 +46,8 @@ def createDatastoreTasks(client, list, kind):
                 newTask.update(entry)
                 appliedTasks.append(entry["id"])
                 tasks.append(newTask)
-                logging.info(entry["id"] + " added to datastore")
             else:
-                logging.info(entry["id"] + " already in list")
+                logging.info(entry["id"] + " already in " + kind + " list")
         return tasks
     else:
         return None
@@ -62,13 +55,9 @@ def createDatastoreTasks(client, list, kind):
 def parseApiData(rest_agent):
     rest_agent.signIn()
     organizations = rest_agent.getOrganizations()
-    logging.info (f'organizations: {organizations}')
     listIds = parseIds(organizations)
-    logging.info (f'listIds: {listIds}')
     allThings = getAllThings(rest_agent, listIds)
-    logging.info (f'allThings: {allThings}')
     allLocations = getAllLocations(rest_agent, listIds)
-    logging.info (f'allLocations: {allLocations}')
     return allLocations, allThings
 
 def uploadApiData(datastore_client, allLocations, allThings):
@@ -90,7 +79,7 @@ def uploadApiData(datastore_client, allLocations, allThings):
 
 
 # Entry point for cloud function
-def entry(request):
+def entry(request,message):
     log_level = 'INFO' if "LOGGING_LEVEL" not in os.environ else os.environ['LOGGING_LEVEL'] 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=log_level)
 

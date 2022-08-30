@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import logging
+import math
 from dotenv import load_dotenv
 from google.cloud import secretmanager_v1
 
@@ -150,35 +151,67 @@ class TokenAuth():
             logging.error(f"HAAS_REST_HANDLER.getOrganizations FAILED TO CONNECT TO HAAS ALERT AND getOrganizations \nResponse message: {r.status_code}")
             return False
 
-    def getThings(self, id):
+    def getThing(self, id, page):
         bearer = "Bearer " + self.b_token
-        r = requests.get(f'{self.api_endpoint}organizations/{id}/things', headers=
-                          {'content-type': 'application/json', 
-                           'ACCEPT':'application/vnd.haasalert.com; version=2',
-                           'Authorization':bearer})
-
+        header = {"Content-Type": "application/json", 
+            "ACCEPT":"application/vnd.haasalert.com; version=2",
+            "Authorization":bearer}
+        params = {'per_page': '100', 'page':page}
+        r = requests.get(f'{self.api_endpoint}organizations/{id}/things', headers=header, params=params)
+        
         if r.status_code == 200:
             json_response = json.loads(r.content)
-            logging.info("HAAS_REST_HANDLER.getThings Successfully got things")
-            return json_response
+            total_things = json_response['meta']['total']
+            return json_response['data'], total_things
         else:
-            logging.error(f"HAAS_REST_HANDLER.getThings FAILED TO CONNECT TO HAAS ALERT AND getThings \nResponse message: {r.status_code}")
-            return False
+            logging.error(f"HAAS_REST_HANDLER.getThing FAILED TO CONNECT TO HAAS ALERT AND getThings \nResponse message: {r.status_code}")
+            return None
+
+    def getThings(self, id):
+        page = 1
+        response_data = []
+        data, total_things = self.getThing(id, page)
+        total_pages = math.ceil(total_things/100)
+        
+        if data:
+            response_data = response_data + data
+            while page <= total_pages - 1:
+                page +=1
+                data, pages = self.getThing(id, page)
+                response_data = response_data + data
+        if len(response_data) > 0:
+            logging.info(f"HAAS_REST_HANDLER.getThings Successfully received {str(len(response_data))} things from organization {id}.")
+        return response_data
+    
+    def getLocation(self, id, page):
+        bearer = "Bearer " + self.b_token
+        header = {"Content-Type": "application/json", 
+            "ACCEPT":"application/vnd.haasalert.com; version=2",
+            "Authorization":bearer}
+        params = {'per_page': '100', 'page':page}
+        r = requests.get(f'{self.api_endpoint}organizations/{id}/locations', headers=header, params=params)
+        
+        if r.status_code == 200:
+            json_response = json.loads(r.content)
+            total_locations = json_response['meta']['total']            
+            return json_response['data'], total_locations
+        else:
+            logging.error(f"HAAS_REST_HANDLER.getLocation FAILED TO CONNECT TO HAAS ALERT AND getLocation \nResponse message: {r.status_code}")
+            return None
 
     def getLocations(self, id):
-        bearer = "Bearer " + self.b_token
-        r = requests.get(f'{self.api_endpoint}organizations/{id}/locations', headers=
-                          {'content-type': 'application/json', 
-                           'ACCEPT':'application/vnd.haasalert.com; version=2',
-                           'Authorization':bearer})
-
-        if r.status_code == 200:
-            json_response = json.loads(r.content)
-            logging.info("HAAS_REST_HANDLER.getLocations Successfully got locations")
-            return json_response
-        else:
-            logging.error(f"HAAS_REST_HANDLER.getLocations FAILED TO CONNECT TO HAAS ALERT AND getLocations \nResponse message: {r.status_code}")
-            return False
+        page = 1
+        response_data = []
+        data, total_locations = self.getLocation(id, page)
+        total_pages = math.ceil(total_locations/100)
+        response_data += data
+        while page <= total_pages -1:
+            page +=1
+            data, pages = self.getLocation(id, page)
+            response_data += data
+        if len(response_data) > 0:
+            logging.info(f"HAAS_REST_HANDLER.getLocations Successfully received {str(len(response_data))} locations from organization {id}.")
+        return response_data
         
     def getToken(self):
         return self.b_token
