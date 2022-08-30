@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 @patch.object(websocket,'create_connection')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
     'HAAS_API_ENDPOINT': 'api.endpoint'
 })
@@ -29,7 +28,6 @@ def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_co
 @patch('google.cloud.secretmanager_v1.SecretManagerServiceClient')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket',
     'HAAS_API_ENDPOINT': 'api.endpoint'
 })
