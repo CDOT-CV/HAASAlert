@@ -133,3 +133,6 @@ gcp_credentials.json
 
 # Testing functions
 testing_code.py
+
+.idea
+.vscode

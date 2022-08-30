@@ -1,0 +1,35 @@
+{
+   "meta":{
+      "page":1,
+      "per_page":50,
+      "total":100
+   },
+   "data":[
+      {
+         "id":"id",
+         "external_id":"eid",
+         "lat":10.0000000000,
+         "lon":10.0000000000,
+         "alt":10.0000000000,
+         "street_name":"US-40",
+         "type":"emergency",
+         "is_active":false,
+         "start_time":"2022-01-21T00:00:00.00Z",
+         "end_time":"2022-01-21T00:00:00.00Z",
+         "things_active":[
+            
+         ],
+         "things_inactive":[
+            {
+               "id":"thing_id",
+               "external_id":"thing_eid",
+               "start_time":"2022-01-21T00:00:00.00Z",
+               "end_time":"2022-01-21T00:00:00.00Z"
+            }
+         ],
+         "alert_message":"Fire vehicle on scene",
+         "default_expiry":"2022-01-21T00:00:00.00Z",
+         "features":"None"
+      }
+   ]
+}

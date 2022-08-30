@@ -1,0 +1,8 @@
+{
+    "access_token":"bearer_token",
+    "token_type":"Bearer",
+    "expires_in":86400,
+    "refresh_token":"refresh_token",
+    "scope":"read",
+    "created_at":1654024887
+ }

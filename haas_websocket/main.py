@@ -26,18 +26,9 @@ def filterMessage(message,publisher):
     
     data_type = data.get('type')
     # Filters the messages and publishes messages to specified topic
-    if data_type == 'point':
-        path = publisher.topic_path(project_id, os.getenv('POINT_TOPIC'))
-        returnMessage = 'point'
-    elif data_type == 'heartbeat':
-        path = publisher.topic_path(project_id, os.getenv('HEARTBEAT_TOPIC'))
-        returnMessage = 'heartbeat'
-    elif data_type == 'thing':
-        path = publisher.topic_path(project_id, os.getenv('THING_TOPIC'))
-        returnMessage = 'thing'
-    elif data_type == 'location':
-        path = publisher.topic_path(project_id, os.getenv('LOCATION_TOPIC'))
-        returnMessage = 'location'
+    if data_type == 'point' or data_type == 'heartbeat' or data_type == 'thing' or data_type == 'location':
+        path = publisher.topic_path(project_id, 'haas-alert-raw')
+        returnMessage = data_type
     elif data_type is None and data.get('keepAlive'):
         returnMessage = 'keepAlive'
     else:
@@ -57,25 +48,19 @@ def startWebsocket(publisher):
     ws_endpoint = os.getenv('HAAS_WSS_ENDPOINT')
     ws = websocket.create_connection(ws_endpoint+b_token)
     while running() == True:
-        check_pass = rest.checkPassword()
         check_token = rest.checkToken()
-        if check_pass == False:
-            ws.close()
-            rest.passwordUpdate() # updates local token from the secret manager
-            b_token = rest.signIn()
-            ws = websocket.create_connection(ws_endpoint+b_token) # restarts the websocket
         if check_token == False:
             ws.close()
-            b_token = rest.tokenUpdate() # updates local token from the secret manager
+            b_token = rest.refreshToken() # updates local token from the secret manager
             ws = websocket.create_connection(ws_endpoint+b_token) # restarts the websocket
-        if check_pass == True and check_token == True:
+        if check_token == True:
             try:
                 result = ws.recv() 
                 msg_type, published = filterMessage(result,publisher)
                 if published == True:
                     logging.info(f"Successfully pushed {msg_type} message pub/sub. \nFull Message: {result}")
                 else:
-                    logging.info(f"Successfully recieved {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
+                    logging.info(f"Successfully received {msg_type} message, did not publish to pub/sub \nFull Message: {result}")
             except KeyboardInterrupt:
                 break
             
@@ -84,6 +69,8 @@ def startWebsocket(publisher):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    log_level = 'INFO' if "LOGGING_LEVEL" not in os.environ else os.environ['LOGGING_LEVEL'] 
+    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=log_level, datefmt='%Y-%m-%d %H:%M:%S')
+
     publisher = pubsub_v1.PublisherClient()
     startWebsocket(publisher)

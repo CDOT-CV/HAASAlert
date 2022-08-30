@@ -1,0 +1,43 @@
+{
+   "user_org":{
+      "id":"uuid-1",
+      "name":"CO - Colorado Dept of Transportation",
+      "phone_number":"101-101-1001",
+      "address1":"1001 dept ave",
+      "address2":"",
+      "city":"HAAS Alert",
+      "state":"AMA",
+      "postal_code":"10001",
+      "country":"AMA",
+      "contact_name":"HAAS",
+      "contact_email":"HAAS@gmail.com",
+      "max_number_of_things":100,
+      "number_of_registered_things":0,
+      "features":{
+         "r2r":false
+      }
+   },
+   "managed_orgs":[
+      {
+         "id":"uuid-2",
+         "name":"CO - Colorado Dept of Transportation",
+         "phone_number":"101-101-1001",
+         "address1":"1001 dept ave",
+         "address2":"",
+         "city":"HAAS Alert",
+         "state":"AMA",
+         "postal_code":"10001",
+         "country":"AMA",
+         "contact_name":"HAAS",
+         "contact_email":"HAAS@gmail.com",
+         "max_number_of_things":100,
+         "number_of_registered_things":0,
+         "features":{
+            "r2r":false
+         }
+      }
+   ],
+   "accessed_orgs":[
+      
+   ]
+}

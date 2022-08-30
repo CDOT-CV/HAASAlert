@@ -1,0 +1,27 @@
+[
+   {
+      "id":"uuid",
+      "external_id":"uuid",
+      "lat":10.00000000,
+      "lon":10.00000000,
+      "alt":1.0000,
+      "street_name":"HAAS Alert Ave",
+      "type":"emergency",
+      "is_active":false,
+      "start_time":"2022-04-28T01:57:35.98Z",
+      "end_time":"2022-04-28T02:11:52.70Z",
+      "things_active":[
+         
+      ],
+      "things_inactive":[
+         {
+            "id":"uuid",
+            "external_id":"id",
+            "start_time":"2022-04-28T01:57:35.99Z",
+            "end_time":"2022-04-28T02:11:52.68Z"
+         }
+      ],
+      "alert_message":"Fire vehicle on scene",
+      "default_expiry":"2022-04-28T09:57:35.98Z"
+   }
+]
