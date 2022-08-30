@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 @patch('haas_websocket.rest.haas_rest_handler.TokenAuth')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
 def test_main_rest_sign_in(pubsub, mTokenAuth):
@@ -21,8 +20,7 @@ def test_main_rest_sign_in(pubsub, mTokenAuth):
 
 @patch('google.cloud.pubsub_v1.PublisherClient')
 @patch.dict(os.environ, {
-    'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC'
+    'PROJECT_ID': 'PROJECT_ID'
 })
 def test_main_filter(pubsub):
     message = '{"type":"point"}'
@@ -62,7 +60,6 @@ def test_main_filter_keep_alive(pubsub):
 @patch.object(websocket,'create_connection')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
 def test_main_ws_publish(pubsub, mTokenAuth, running, filterMessage, create_connection):
@@ -81,7 +78,6 @@ def test_main_ws_publish(pubsub, mTokenAuth, running, filterMessage, create_conn
 @patch.object(websocket,'create_connection')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
 def test_main_ws_failed_publish(pubsub, mTokenAuth, running, filterMessage, create_connection):
@@ -100,7 +96,6 @@ def test_main_ws_failed_publish(pubsub, mTokenAuth, running, filterMessage, crea
 @patch.object(websocket,'create_connection')
 @patch.dict(os.environ, {
     'PROJECT_ID': 'PROJECT_ID',
-    'POINT_TOPIC': 'POINT_TOPIC',
     'HAAS_WSS_ENDPOINT': 'wss.testwebsocket'
 })
 def test_main_failed_token(pubsub, mTokenAuth, running, filterMessage, create_connection):

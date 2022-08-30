@@ -62,7 +62,6 @@ def createDatastoreTasks(client, list, kind):
 def parseApiData(rest_agent):
     rest_agent.signIn()
     organizations = rest_agent.getOrganizations()
-    print(rest_agent)
     logging.info (f'organizations: {organizations}')
     listIds = parseIds(organizations)
     logging.info (f'listIds: {listIds}')
@@ -70,7 +69,6 @@ def parseApiData(rest_agent):
     logging.info (f'allThings: {allThings}')
     allLocations = getAllLocations(rest_agent, listIds)
     logging.info (f'allLocations: {allLocations}')
-    print(f'locations: {allLocations}, things: {allThings}')
     return allLocations, allThings
 
 def uploadApiData(datastore_client, allLocations, allThings):
